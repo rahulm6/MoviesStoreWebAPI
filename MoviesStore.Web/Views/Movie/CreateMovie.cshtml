@@ -1,0 +1,211 @@
+﻿@model MoviesStore.Web.Models.MovieViewModel
+
+@{
+    ViewBag.Title = "CreateMovie";
+}
+
+
+<div id="copy_dialog">
+
+    @using (Ajax.BeginForm("CreateMovie", "Movie",
+                                                                    new AjaxOptions
+                                                                    {
+                                                                        OnSuccess = "OnSuccess",
+                                                                        OnFailure = "OnFailure",
+                                                                        LoadingElementId = "progress"
+                                                                    }, new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-horizontal">
+            <h4>MovieViewModel</h4>
+            <hr />
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.YearOfRelease, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                   
+                    <input type="text" name="YearID" id="YearID" hidden />
+                    <input type="text" name="YearOfRelease" id="YearOfRelease" class="form-control" />
+                    @Html.ValidationMessageFor(model => model.YearOfRelease, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Plot, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.TextArea("Plot", null, new { @class = "form-control", rows = 5, columns = 80 }) 
+                    @Html.ValidationMessageFor(model => model.Plot, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Poster, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    
+                    <input type="file" name="File" id="File" class="form-control" />
+                    
+                    @Html.ValidationMessageFor(model => model.Poster, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Producer.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10 ui-widget">
+                    <input type="text" name="ProducerID" id="ProducerID" hidden />
+                    <input type="text" name="Producer.Name" id="ProducerName" class="form-control" />
+                    @Html.ValidationMessageFor(model => model.Producer.Name, "", new { @class = "text-danger" })
+                    @*<span id="addProducer" class="btn btn-default" >+</span>*@
+                    <span class="btn btn-success hidden" data-toggle="modal" data-target="#modalForm" id="addProducer">Add Producer</span>
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Actors[0].Name, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-2">
+                    <span id='addButton' class="btn btn-default">+</span><span id='removeButton' class="btn btn-danger">-</span>
+                </div>
+                <div class="col-md-6" id='TextBoxesGroup'>
+                    <div id="TextBoxDiv1" data-id="TextBoxDiv">
+                        <input type='text' id='Actor0' name="Actors[0].Name" class="form-control autosuggest">
+                        <input type='text' id='ActorID0' name="Actors[0].ActorID" hidden>
+                    </div>
+
+                </div>
+                <span id="addActor" class="btn btn-success hidden" data-toggle="modal" data-target="#modalActorForm">Add Actor</span>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    <input type="submit" value="Create" class="btn btn-default" />
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalForm" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Add Producer Form</h4>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <p class="statusMsg"></p>
+                <form role="form" id="Producerform" action="Producer/AddProducer" >
+                   
+                    <div class="form-group">
+                        <label for="ProducerName">Producer Name</label>
+                        <input type="text" class="form-control" id="PName" placeholder="Enter Producer name" />
+                        <span class="text-danger" id="PNameError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="Sex">Gender</label>
+                        <input type="text" class="form-control" id="Sex" placeholder="Enter Gender" />
+                        
+                    </div>
+                    <div class="form-group">
+                        <label for="DOB">Date Of Birth</label>
+                        <input type="text" class="form-control datepicker" id="DOB" placeholder="Enter DOB" />
+                        
+                    </div>
+                    <div class="form-group">
+                        <label for="Bio">Biography</label>
+                        <textarea class="form-control" id="Bio" placeholder="Enter the Biography" ></textarea>
+                        
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <span class="btn btn-primary submitBtn" id="producerSubmit">SUBMIT</span>
+            </div>
+        </div>
+    </div>
+</div> 
+
+<div class="modal fade" id="modalActorForm" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Actor Form</h4>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <p class="statusMsg"></p>
+                <form role="form" id="Actorform" action="Producer/AddProducer">
+
+                    <div class="form-group">
+                        <label for="ProducerName">Actor Name</label>
+                        <input type="text" class="form-control" id="AName" placeholder="Enter Actor Name" />
+                        <span class="text-danger" id="ANameError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="Sex">Gender</label>
+                        <input type="text" class="form-control" id="ASex" placeholder="Enter Gender" />
+                        
+                    </div>
+                    <div class="form-group">
+                        <label for="DOB">Date Of Birth</label>
+                        <input type="text" class="form-control datepicker" id="ADOB" placeholder="Enter DOB" />
+                        
+                    </div>
+                    <div class="form-group">
+                        <label for="Bio">Biography</label>
+                        <textarea class="form-control" id="ABio" placeholder="Enter the Biography"></textarea>
+                        
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <span class="btn btn-primary submitBtn" id="actorSubmit">SUBMIT</span>
+            </div>
+        </div>
+    </div>
+</div> 
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="https://jqueryui.com/resources/demos/style.css">
+<style>
+    .ui-autocomplete {
+        z-index: 2147483647;
+    }
+</style>
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="~/Scripts/AppScript/CreateMovie.js"></script>
+<script src="~/Scripts/jquery.toaster.js"></script>
+
+

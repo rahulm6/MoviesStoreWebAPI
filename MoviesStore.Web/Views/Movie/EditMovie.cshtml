@@ -1,0 +1,471 @@
+﻿@model MoviesStore.Web.Models.MovieViewModel
+
+@{
+    ViewBag.Title = "EditMovie";
+}
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="https://jqueryui.com/resources/demos/style.css">
+<h2>Edit Movie</h2>
+
+
+@using (Html.BeginForm("EditMovie","Movie", FormMethod.Post,
+                             new { enctype = "multipart/form-data" }))
+{
+    @Html.AntiForgeryToken()
+    
+    <div class="form-horizontal">
+        
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+           
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.MovieID, new { htmlAttributes = new { @class = "form-control hidden" } })
+                @Html.ValidationMessageFor(model => model.MovieID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.YearOfRelease, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                
+                <input type='text' id=YearOfRelease name=YearOfRelease value=@Model.YearOfRelease class="form-control">
+                @Html.ValidationMessageFor(model => model.YearOfRelease, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Plot, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextArea("Plot", null, new { @class = "form-control", rows = 5, columns = 80 }) 
+                @Html.ValidationMessageFor(model => model.Plot, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Poster, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @*@Html.EditorFor(model => model.Poster, new { htmlAttributes = new { @class = "form-control" } })*@
+                @Html.TextBoxFor(m => m.File, new { type = "file", @class = "form-control",name="sasassa" })
+                <span><img src="@Model.Poster" width="150px" height="200px"></span>
+                        @Html.TextBoxFor(model => Model.Poster, new { @class = "hidden" })
+                        @Html.ValidationMessageFor(model => model.Poster, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Producer.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBoxFor(model => Model.ProducerID,new { @class="hidden" })
+               
+                <input type='text' id="ProducerName" name="ProducerName" value="@Model.Producer.Name" class="form-control" style="margin-top:10px;">
+                <span class="btn btn-success hidden" data-toggle="modal" data-target="#modalForm" id="addProducer" >Add Producer</span>
+                @Html.ValidationMessageFor(model => model.Producer.Name, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Actors[0].Name, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-2">
+                <span id='addButton' class="btn btn-default">+</span><span id='removeButton' class="btn btn-danger">-</span>
+            </div>
+            <div class="col-md-6"  id='TextBoxesGroup'>
+                @for (int i = 0; i < Model.Actors.Count; i++)
+                {
+                    if (Model.Actors[i] == null)
+                    {
+                        <div id="TextBoxDiv1" data-id="TextBoxDiv">
+                            <input type='text' id="Actor0" name="Actors[0].Name" value="" class="form-control autosuggest">
+                            <input type='text' id="ActorID0" name="Actors[0].ActorID" value="" hidden>
+                        </div>
+                    }
+                    else
+
+                    {
+                        <div id="TextBoxDiv1" data-id="TextBoxDiv">
+                            <input type='text' id=@("Actor" + i ) name=@("Actors[" + i + "].Name") value="@(Model.Actors[i].Name + "" )" class="form-control autosuggest">
+                            <input type='text' id=@("ActorID" + i ) name=@("Actors[" + i + "].ActorID") value=@(Model.Actors[i].ActorID) hidden>
+                        </div>
+                    }
+
+                }
+            </div>
+            
+           
+            <span id="addActor" class="btn btn-success hidden" data-toggle="modal" data-target="#modalActorForm">Add Actor</span>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Save" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+<div class="modal fade" id="modalForm" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Add Producer Form</h4>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <p class="statusMsg"></p>
+                <form role="form" id="Producerform" action="Producer/AddProducer">
+
+                    <div class="form-group">
+                        <label for="ProducerName">Producer Name</label>
+                        <input type="text" class="form-control" id="PName" placeholder="Enter Producer name" />
+                        <span class="text-danger" id="PNameError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="Sex">Gender</label>
+                        <input type="text" class="form-control" id="Sex" placeholder="Enter Gender" />
+
+                    </div>
+                    <div class="form-group">
+                        <label for="DOB">Date Of Birth</label>
+                        <input type="text" class="form-control datepicker" id="DOB" placeholder="Enter DOB" />
+
+                    </div>
+                    <div class="form-group">
+                        <label for="Bio">Biography</label>
+                        <textarea class="form-control" id="Bio" placeholder="Enter the Biography"></textarea>
+
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <span class="btn btn-primary submitBtn" id="producerSubmit">SUBMIT</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalActorForm" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                    <span class="sr-only">Close</span>
+                </button>
+                <h4 class="modal-title" id="myModalLabel">Actor Form</h4>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="modal-body">
+                <p class="statusMsg"></p>
+                <form role="form" id="Actorform" action="Producer/AddProducer">
+
+                    <div class="form-group">
+                        <label for="ProducerName">Actor Name</label>
+                        <input type="text" class="form-control" id="AName" placeholder="Enter Actor Name" />
+                        <span class="text-danger" id="ANameError"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="Sex">Gender</label>
+                        <input type="text" class="form-control" id="ASex" placeholder="Enter Gender" />
+
+                    </div>
+                    <div class="form-group">
+                        <label for="DOB">Date Of Birth</label>
+                        <input type="text" class="form-control datepicker" id="ADOB" placeholder="Enter DOB" />
+
+                    </div>
+                    <div class="form-group">
+                        <label for="Bio">Biography</label>
+                        <textarea class="form-control" id="ABio" placeholder="Enter the Biography"></textarea>
+
+                    </div>
+                </form>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <span class="btn btn-primary submitBtn" id="actorSubmit">SUBMIT</span>
+            </div>
+        </div>
+    </div>
+</div> 
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+<script>
+
+$(function () {
+$('.datepicker').datepicker();
+var xyz = @ViewData["counter"];
+var counter = xyz + 1;
+
+$("#actorSubmit").click(function () {
+    var dataPassed = {
+        Name: $('#AName').val(),
+        Sex: $('#ASex').val(),
+        DOB: $('#ADOB').val(),
+        Bio: $('#ABio').val()
+    }
+    if ($('#AName').val() == 'undefined' || $('#AName').val() == '') {
+        $('#ANameError').text("Actor Name is Required");
+        return false;
+    }
+    var $buttonClicked = $(this);
+    //var id = $buttonClicked.attr('data-id');
+    var options = { "backdrop": "static", keyboard: true };
+    $.ajax({
+        type: "POST",
+        url: "@Url.Action("AddActor", "Actor")",
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify(dataPassed),
+        datatype: "json",
+        success: function (data) {
+
+            //$('#myModalContent').html(data);
+            //$('#myModal').modal(options);
+
+            $('#addActor').removeClass('hidden').css("display", "none");
+
+            $("#Actorform").trigger('reset');
+
+            $.toaster({ priority: 'success', title: 'Title', message: 'Actor Added Successfully' });
+
+
+        },
+        error: function () {
+            //alert("Dynamic content load failed.");
+            $.toaster({ priority: 'danger', title: 'Error', message: 'Dynamic content load failed !!!' });
+        }
+    });
+
+});
+
+$("#ProducerName").autocomplete({
+    source: function (request, response) {
+        $.ajax({
+            url: "/Producer/SearchProducers",
+            type: "GET",
+            dataType: "json",
+            data: { searchTerm: request.term },
+            success: function (data) {
+                if (!data.length) {
+                    $.toaster({ priority: 'danger', title: 'Message', message: 'No Producer Found. Pleae Add !!!' });
+                    $('#addProducer').removeClass('hidden').css("display", "inline");
+                }
+                else {
+                    response($.map(data, function (item) {
+                        $('#addProducer').removeClass('hidden').css("display", "none");
+                        return { label: item.Name, value: item.Name, ProducerID: item.ProducerID };
+                    }))
+                }
+
+
+            }
+        })
+    },
+    minLength: 1,
+    select: function (event, ui) {
+        $("#ProducerID").val(ui.item.ProducerID);
+        //do anything u need
+        //get ur name  ui.item.Name
+        //get ur URL   ui.item.LogoUrl
+    }
+});
+
+$("#producerSubmit").click(function () {
+    var dataPassed = {
+        Name: $('#PName').val(),
+        Sex: $('#Sex').val(),
+        DOB: $('#DOB').val(),
+        Bio: $('#Bio').val()
+    }
+    if ($('#PName').val() == 'undefined' || $('#PName').val() == '') {
+        $('#PNameError').text("Producer Name is Required");
+        return false;
+    }
+    var $buttonClicked = $(this);
+    //var id = $buttonClicked.attr('data-id');
+    var options = { "backdrop": "static", keyboard: true };
+    $.ajax({
+        type: "POST",
+        url: "@Url.Action("AddProducer", "Producer")",
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify(dataPassed),
+        datatype: "json",
+        success: function (data) {
+
+            //$('#myModalContent').html(data);
+            //$('#myModal').modal(options);
+
+            $('#addProducer').removeClass('hidden').css("display", "none");
+            $("#Producerform").trigger('reset');
+
+            $.toaster({ priority: 'success', title: 'Status', message: 'Producer Added Successfully' });
+
+
+        },
+        error: function () {
+            //alert("Dynamic content load failed.");
+            $.toaster({ priority: 'danger', title: 'Error', message: 'Dynamic content load failed !!!' });
+        }
+    });
+    $('#myModal').modal('hide');
+});
+
+$('input').focus(function () {
+    $('#' + $(this).attr('id') + 'Error').text("");
+});
+
+$("#addButton").click(function () {
+
+    if (counter > 10) {
+        //alert("Only 10 textboxes allow");
+        return false;
+    }
+
+    var newTextBoxDiv = $(document.createElement('div'))
+        .attr("id", 'TextBoxDiv' + counter);
+    newTextBoxDiv.attr("data-id", 'TextBoxDiv');
+
+    newTextBoxDiv.after().html(
+        '<input type="text" name="Actors[' + (counter - 1) + '].Name" class="form-control autosuggest" id="Actor' + (counter - 1) + '"  >'
+        + '<input type="text" name= "Actors[' + (counter - 1) + '].ActorID" id= "ActorID' + (counter - 1) + '" hidden> ');
+
+    newTextBoxDiv.appendTo("#TextBoxesGroup");
+
+
+    counter++;
+});
+
+$("#YearOfRelease").keydown(function (e) {
+    // Allow: backspace, delete, tab, escape, enter and .
+    if ($.inArray(e.keyCode, [46, 8, 9, 27, 13, 110, 190]) !== -1 ||
+        // Allow: Ctrl+A, Command+A
+        (e.keyCode === 65 && (e.ctrlKey === true || e.metaKey === true)) ||
+        // Allow: home, end, left, right, down, up
+        (e.keyCode >= 35 && e.keyCode <= 40)) {
+        // let it happen, don't do anything
+
+        return;
+    }
+    // Ensure that it is a number and stop the keypress
+    if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+        $.toaster({ priority: 'danger', title: 'Message', message: 'Please type Numeric Character !!!' });
+        e.preventDefault();
+    }
+});
+
+$("#YearOfRelease").autocomplete({
+    source: function (request, response) {
+        $.ajax({
+            url: "/Home/GetAllYears",
+            type: "GET",
+            dataType: "json",
+            data: { searchTerm: request.term },
+            success: function (data) {
+                if (!data.length) {
+                    $.toaster({ priority: 'danger', title: 'Message', message: 'No Year Found. !!!' });
+                    //$('#addProducer').removeClass('hidden').css("display", "inline");
+                }
+                else {
+                    response($.map(data, function (item) {
+                        //$('#addProducer').removeClass('hidden').css("display", "none");
+                        return { label: item.Value, value: item.Value, YearID: item.YearID };
+                    }))
+                }
+
+
+            }
+        })
+    },
+    minLength: 1,
+    select: function (event, ui) {
+        $("#YearID").val(ui.item.YearID);
+        //do anything u need
+        //get ur name  ui.item.Name
+        //get ur URL   ui.item.LogoUrl
+    }
+});
+
+$("#removeButton").click(function () {
+    if (counter == 1) {
+
+        $.toaster({ priority: 'danger', title: 'Error', message: 'One Actor is Required' });
+        return false;
+    }
+
+    counter--;
+
+    $("#TextBoxDiv" + counter).remove();
+
+});
+
+
+//
+$('body').on('focus', ".autosuggest", function () {
+    var autosuggestType = $(this).closest('div').attr("TextBoxDiv");
+    $(this).autocomplete({
+        source: function (request, response) {
+            $.ajax({
+                url: "/Actor/SearchActors",
+                type: "GET",
+                dataType: "json",
+                data: { searchTerm: request.term },
+                contentType: "application/json; charset=utf-8",
+                dataFilter: function (data) { return data; },
+                success: function (data) {
+                    if (!data.length) {
+                        $.toaster({ priority: 'danger', title: 'Message', message: 'No Actor Found. Please Add !!!' });
+                        $('#addActor').removeClass('hidden').css("display", "inline");
+                    }
+                    else {
+                        response($.map(data, function (item) {
+                            $('#addActor').removeClass('hidden').css("display", "none");
+                            return { label: item.Name, value: item.Name, ActorID: item.ActorID };
+                        }))
+                    }
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {
+                    //alert(textStatus);
+                    $.toaster({ priority: 'danger', title: 'Error', message: textStatus });
+                }
+            });
+        },
+        minLength: 1,
+        select: function (event, ui) {
+            var id = $(this).attr('id').substring(5, 7);
+
+            $('#ActorID' + id).val(ui.item.ActorID);
+            var d = $('#ActorID' + id).val();
+            //$(this).attr('id').val(ui.item.ProducerID);
+            //do anything u need
+            //get ur name  ui.item.Name
+            //get ur URL   ui.item.LogoUrl
+        }
+    });
+});
+    });
+</script>
+<script src="~/Scripts/AppScript/EditMovie.js"></script>
+<script src="~/Scripts/jquery.toaster.js"></script>

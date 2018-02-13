@@ -1,0 +1,250 @@
+﻿@model MoviesStore.Web.Models.MovieViewModel
+
+@{
+    Layout = null;
+}
+
+
+
+@*@using (Html.BeginForm("AddMovie", "Movie", new { enctype = "multipart/form-data" }))
+ {*@
+<div id="copy_dialog">
+    @using (Ajax.BeginForm("AddMovie", "Movie",
+                                                    new AjaxOptions
+                                                    {
+                                                        OnSuccess = "OnSuccess",
+                                                        OnFailure = "OnFailure",
+                                                        LoadingElementId = "progress"
+                                                    }, new { enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-horizontal">
+            <h4>MovieViewModel</h4>
+            <hr />
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Name, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Name, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.YearOfRelease, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.YearOfRelease, new { htmlAttributes = new { @class = "form-control datepicker" } })
+                    @Html.ValidationMessageFor(model => model.YearOfRelease, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Plot, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.EditorFor(model => model.Plot, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Plot, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Poster, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @*@Html.TextBoxFor(m => m.File, new { type = "file", name = "File" })*@
+                    <input type="file" name="File" id="File" class="form-control" /> 
+                    @*@Html.EditorFor(model => model.Poster, new { htmlAttributes = new { @class = "form-control" } })*@
+                    @Html.ValidationMessageFor(model => model.Poster, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Producer.Name, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10 ui-widget">
+                    <input type="text" name="ProducerID" id="ProducerID" hidden />
+                    <input type="text" name="Producer.Name" id="ProducerName" class="form-control" />
+                    <span id="empty-message"></span>
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Actors[0].Name, htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-2">
+                    <span id='addButton' class="btn btn-default">+</span><span id='removeButton' class="btn btn-danger">-</span>
+                </div>
+                <div class="col-md-6" id='TextBoxesGroup'>
+                    <div id="TextBoxDiv1" data-id="TextBoxDiv">
+                        <input type='text' id='Actor0' name="Actors[0].Name" class="form-control autosuggest" >
+                        <input type='text' id='ActorID0' name="Actors[0].ActorID" hidden>
+                    </div> 
+                    
+                </div>
+            </div>
+      
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-10">
+                    <input type="submit" value="Create" class="btn btn-default" />
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="https://jqueryui.com/resources/demos/style.css">
+ <style>
+     .ui-autocomplete {
+         z-index: 2147483647;
+     }
+</style>
+<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script>
+    $(function () {
+        
+            $('.datepicker').datepicker(); //Initialise any date pickers
+
+        
+        $("#ProducerName").autocomplete({
+            source: function (request, response) {
+                $.ajax({
+                    url: "/Producer/SearchProducers",
+                    type: "GET",
+                    dataType: "json",
+                    data: { searchTerm: request.term },
+                    success: function (data) {
+                        if (!data.length){
+                            $("#empty-message").text("No results found");
+                        }
+                        else {
+                            response($.map(data, function (item) {
+                                return { label: item.Name, value: item.Name, ProducerID: item.ProducerID };
+                            }))
+                        }
+                        
+
+                    }
+                })
+            },
+            minLength: 1,
+            select: function (event, ui) {
+                $("#ProducerID").val(ui.item.ProducerID);
+                //do anything u need
+                //get ur name  ui.item.Name
+                //get ur URL   ui.item.LogoUrl
+            }
+            });
+
+        var counter = 2;
+
+        $("#addButton").click(function () {
+
+            if (counter > 10) {
+                //alert("Only 10 textboxes allow");
+                return false;
+            }
+
+            var newTextBoxDiv = $(document.createElement('div'))
+                .attr("id", 'TextBoxDiv' + counter);
+            newTextBoxDiv.attr("data-id", 'TextBoxDiv');
+
+            newTextBoxDiv.after().html(
+                '<input type="text" name="Actors[' + (counter - 1) + '].Name" class="form-control autosuggest" id="Actor' + (counter-1) + '"  >'
+                +'<input type="text" name= "Actors['+(counter - 1) + '].ActorID" id= "ActorID'+(counter-1)+'" hidden> ');
+
+            newTextBoxDiv.appendTo("#TextBoxesGroup");
+
+
+            counter++;
+        });
+
+        $("#removeButton").click(function () {
+            if (counter == 2) {
+                alert("No more textbox to remove");
+                return false;
+            }
+
+            counter--;
+
+            $("#TextBoxDiv" + counter).remove();
+
+        });
+
+        $("#getButtonValue").click(function () {
+
+            var msg = '';
+            for (i = 1; i < counter; i++) {
+                msg += "\n Textbox #" + i + " : " + $('#textbox' + i).val();
+            }
+            alert(msg);
+        });
+
+        
+
+    });
+</script>
+<script>
+    $(function () {
+        $('body').on('focus', ".autosuggest", function () {
+            var autosuggestType = $(this).closest('div').attr("TextBoxDiv");
+            $(this).autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: "/Producer/SearchProducers",
+                        type: "GET",
+                        dataType: "json",
+                        data: { searchTerm: request.term },
+                        contentType: "application/json; charset=utf-8",
+                        dataFilter: function (data) { return data; },
+                        success: function (data) {
+                            if (!data.length) {
+
+                            }
+                            else {
+                                response($.map(data, function (item) {
+                                    return { label: item.Name, value: item.Name, ProducerID: item.ProducerID };
+                                }))
+                            }
+                        },
+                        error: function (XMLHttpRequest, textStatus, errorThrown) {
+                            alert(textStatus);
+                        }
+                    });
+                },
+                minLength: 1,
+                select: function (event, ui) {
+                    var id = $(this).attr('id').substring(5, 7);
+                    alert(id);
+                    $('#ActorID'+ id).val(ui.item.ProducerID);
+                    
+                    //$(this).attr('id').val(ui.item.ProducerID);
+                    //do anything u need
+                    //get ur name  ui.item.Name
+                    //get ur URL   ui.item.LogoUrl
+                }
+            });
+        });
+        //$(".autosuggest").each(function (index, object) { });
+    });
+</script>
+
+<script type="text/javascript">
+    function OnSuccess(response) {
+        //document.body.innerHTML = response;
+
+
+        alert("Movie Added Successfully");
+    }
+    function OnFailure(response) {
+        alert("Error occured.");
+    }
+    
+</script>
+
+@*<script src="~/Scripts/AppScript/AddMovie.js"></script>*@

@@ -1,0 +1,86 @@
+﻿@model IEnumerable<MoviesStore.Web.Models.MovieViewModel>
+
+@{
+    ViewBag.Title = "GetAllMovies";
+}
+
+
+<link href="~/Content/getAllMovies.css" rel="stylesheet" />
+
+
+
+<div class="container" style="margin-top:30px;" >
+    
+    
+    @for (int i = 0; i < Model.Count(); i = i + 2)
+    {
+        <div class="row " >
+            <div class="col-md-5 movie-box">
+                <div class="row">
+                    <div class="col-md-3">
+                        <img src="@Model.ElementAt(i).Poster" width="100%" />
+                    </div>
+                    <div class="col-md-9">
+                        <b>@Model.ElementAt(i).Name (@Model.ElementAt(i).YearOfRelease)</b> &nbsp;&nbsp;
+                        @Html.ActionLink("Edit", "EditMovie", new { movieID = Model.ElementAt(i).MovieID })
+                        <br />
+                       
+                        <b>Plot :</b> <span class="plot more">@Model.ElementAt(i).Plot</span>
+                        <br /><br />
+                        <b>Producer : @Model.ElementAt(i).Producer.Name</b>,
+                        <b>Actors : </b>
+                        @if (Model.ElementAt(i).Actors != null)
+                        {
+                            
+                            foreach (var item in Model.ElementAt(i).Actors)
+                            {
+                                if (item != null)
+                                {
+                                    @item.Name; <span>&nbsp;&nbsp;</span>
+                                }
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+            @if (i < Model.Count()-1)
+            {
+                <div class="col-md-5 col-md-offset-1 movie-box">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <img src="@Model.ElementAt(i+1).Poster" width="100%" />
+                        </div>
+                        <div class="col-md-9">
+                            <b>@Model.ElementAt(i + 1).Name (@Model.ElementAt(i + 1).YearOfRelease)</b>
+                            &nbsp;&nbsp;
+                            @Html.ActionLink("Edit", "EditMovie", new { movieID = Model.ElementAt(i+1).MovieID })
+                            <br />
+                            <b>Plot :</b> <span class="plot more">@Model.ElementAt(i + 1).Plot</span>
+                            <br /><br />
+                            <b>Producer : @Model.ElementAt(i + 1).Producer.Name</b>
+                            <b>Actors : </b>
+                            @if (Model.ElementAt(i+1).Actors != null)
+                            {
+                                foreach (var item in Model.ElementAt(i+1).Actors)
+                                {
+                                    if (item != null)
+                                    {
+                                        @item.Name;
+                                    }
+                                }
+                            }
+</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+
+</div>
+
+
+</table>
+
+<script src="~/Scripts/AppScript/GetAllMovies.js"></script>
+<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script> 
